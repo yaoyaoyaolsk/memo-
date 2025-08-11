@@ -13,7 +13,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const sortDateButton = document.getElementById('sort-date');
     const sortPriceButton = document.getElementById('sort-price');
     const filterCategorySelect = document.getElementById('filter-category');
-    const displayModeSelect = document.getElementById('display-mode-select');
+    
+    // 変更: 表示方法の選択を削除
+    // const displayModeSelect = document.getElementById('display-mode-select');
+
+    // 変更: 絞り込み機能の要素を追加
+    const filterYearSelect = document.getElementById('filter-year-select');
+    const filterMonthSelect = document.getElementById('filter-month-select');
+    const showAllButton = document.getElementById('show-all-button');
 
     // タブ関連の要素
     const tabButtons = document.querySelectorAll('.tab-button');
@@ -113,58 +120,45 @@ document.addEventListener('DOMContentLoaded', () => {
         let totalPrice = 0;
         const categoryTotals = {};
         
+        // 絞り込み機能の値を読み込み
+        const filterYear = filterYearSelect.value;
+        const filterMonth = filterMonthSelect.value;
         const currentCategoryFilter = filterCategorySelect.value;
-        const filteredRecords = records.filter(record => 
-            currentCategoryFilter === 'all' || record.category === currentCategoryFilter
-        );
 
-        const displayMode = displayModeSelect.value;
+        let filteredRecords = records.filter(record => 
+            (currentCategoryFilter === 'all' || record.category === currentCategoryFilter) &&
+            (filterYear === 'all' || record.date.substring(0, 4) === filterYear) &&
+            (filterMonth === 'all' || record.date.substring(5, 7) === filterMonth)
+        );
 
         filteredRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-        if (displayMode === 'flat') {
-            filteredRecords.forEach(record => {
-                const row = createRecordRow(record, 'flat');
-                recordTableBody.appendChild(row);
-            });
-        } else {
-            const groupedRecords = groupRecordsByDate(filteredRecords, displayMode);
-            let lastHeaderKey = '';
+        // 年と月で区切って表示
+        const groupedByYearAndMonth = groupRecordsByYearAndMonth(filteredRecords);
+        let lastYear = '';
 
-            for (const key in groupedRecords) {
-                const year = key.substring(0, 4);
-                if (displayMode === 'month' && year !== lastHeaderKey.substring(0, 4)) {
-                    const yearHeader = document.createElement('tr');
-                    yearHeader.classList.add('period-header');
-                    yearHeader.innerHTML = `<td colspan="8"><h3>${year}年</h3></td>`;
-                    recordTableBody.appendChild(yearHeader);
-                }
-                
-                const periodHeader = document.createElement('tr');
-                periodHeader.classList.add('period-header');
-                let headerText = '';
+        for (const year in groupedByYearAndMonth) {
+            // 年のヘッダー
+            const yearHeader = document.createElement('tr');
+            yearHeader.classList.add('period-header', 'year-header');
+            const yearTotal = groupedByYearAndMonth[year].total;
+            yearHeader.innerHTML = `<td colspan="8"><h3>${year}年 (合計: ¥${yearTotal.toLocaleString()})</h3></td>`;
+            recordTableBody.appendChild(yearHeader);
 
-                if (displayMode === 'day') {
-                    const dateParts = key.split('-');
-                    const month = parseInt(dateParts[1], 10);
-                    const day = parseInt(dateParts[2], 10);
-                    headerText = `${dateParts[0]}年${month}月${day}日の合計: ¥${groupedRecords[key].total.toLocaleString()}`;
-                } else if (displayMode === 'month') {
-                    const dateParts = key.split('-');
-                    const month = parseInt(dateParts[1], 10);
-                    headerText = `${month}月の合計: ¥${groupedRecords[key].total.toLocaleString()}`;
-                } else if (displayMode === 'year') {
-                    headerText = `${key}年の合計: ¥${groupedRecords[key].total.toLocaleString()}`;
-                }
-                periodHeader.innerHTML = `<td colspan="8"><h4>${headerText}</h4></td>`;
-                recordTableBody.appendChild(periodHeader);
-                
-                groupedRecords[key].records.forEach(record => {
-                    const row = createRecordRow(record, displayMode);
+            for (const month in groupedByYearAndMonth[year].months) {
+                // 月のヘッダー
+                const monthHeader = document.createElement('tr');
+                monthHeader.classList.add('period-header', 'month-header');
+                const monthTotal = groupedByYearAndMonth[year].months[month].total;
+                const formattedMonth = parseInt(month, 10);
+                monthHeader.innerHTML = `<td colspan="8"><h4>${formattedMonth}月 (合計: ¥${monthTotal.toLocaleString()})</h4></td>`;
+                recordTableBody.appendChild(monthHeader);
+
+                // 個別の購入記録
+                groupedByYearAndMonth[year].months[month].records.forEach(record => {
+                    const row = createRecordRow(record);
                     recordTableBody.appendChild(row);
                 });
-
-                lastHeaderKey = key;
             }
         }
         
@@ -187,22 +181,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         localStorage.setItem('purchaseRecords', JSON.stringify(records));
+        updateFilterOptions();
     }
 
-    function createRecordRow(record, displayMode) {
+    function createRecordRow(record) {
         const row = document.createElement('tr');
-        let displayDate = record.date;
         const parts = record.date.split('-');
         const month = parseInt(parts[1], 10);
         const day = parseInt(parts[2], 10);
+        const displayDate = `${month}月${day}日`;
         
-        // 日付の表記を `x月x日` に統一
-        displayDate = `${month}月${day}日`;
-        
-        if (displayMode === 'flat' || displayMode === 'day' || displayMode === 'month') {
-             displayDate = `${month}月${day}日`;
-        }
-
         row.innerHTML = `
             <td>${record.name}</td>
             <td>${record.maker || ''}</td>
@@ -216,24 +204,46 @@ document.addEventListener('DOMContentLoaded', () => {
         return row;
     }
 
-    function groupRecordsByDate(data, type) {
-        return data.reduce((groups, record) => {
-            let key;
-            if (type === 'year') {
-                key = record.date.substring(0, 4);
-            } else if (type === 'month') {
-                key = record.date.substring(0, 7);
-            } else if (type === 'day') {
-                key = record.date;
+    // 変更: 年と月でグループ化する関数
+    function groupRecordsByYearAndMonth(data) {
+        const groups = {};
+        data.forEach(record => {
+            const year = record.date.substring(0, 4);
+            const month = record.date.substring(5, 7);
+            
+            if (!groups[year]) {
+                groups[year] = { total: 0, months: {} };
+            }
+            if (!groups[year].months[month]) {
+                groups[year].months[month] = { total: 0, records: [] };
             }
             
-            if (!groups[key]) {
-                groups[key] = { total: 0, records: [] };
-            }
-            groups[key].total += record.price;
-            groups[key].records.push(record);
-            return groups;
-        }, {});
+            groups[year].total += record.price;
+            groups[year].months[month].total += record.price;
+            groups[year].months[month].records.push(record);
+        });
+        return groups;
+    }
+
+    // 変更: 年と月のフィルタリングオプションを更新する関数
+    function updateFilterOptions() {
+        const years = [...new Set(records.map(record => record.date.substring(0, 4)))].sort().reverse();
+        filterYearSelect.innerHTML = '<option value="all">全て</option>';
+        years.forEach(year => {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            filterYearSelect.appendChild(option);
+        });
+
+        filterMonthSelect.innerHTML = '<option value="all">全て</option>';
+        for (let i = 1; i <= 12; i++) {
+            const monthStr = i.toString().padStart(2, '0');
+            const option = document.createElement('option');
+            option.value = monthStr;
+            option.textContent = `${i}月`;
+            filterMonthSelect.appendChild(option);
+        }
     }
 
     // ジャンルの追加
@@ -399,9 +409,17 @@ document.addEventListener('DOMContentLoaded', () => {
     filterCategorySelect.addEventListener('change', () => {
         renderRecords();
     });
-
-    // 表示方法の変更を監視
-    displayModeSelect.addEventListener('change', () => {
+    
+    // 変更: 絞り込み機能のイベントリスナー
+    filterYearSelect.addEventListener('change', () => {
+        renderRecords();
+    });
+    filterMonthSelect.addEventListener('change', () => {
+        renderRecords();
+    });
+    showAllButton.addEventListener('click', () => {
+        filterYearSelect.value = 'all';
+        filterMonthSelect.value = 'all';
         renderRecords();
     });
 
