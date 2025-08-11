@@ -59,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ジャンルの表示と更新
     function renderGenres() {
-        // ジャンルリストの表示
         genreListUl.innerHTML = '';
         genres.forEach(genre => {
             const li = document.createElement('li');
@@ -67,10 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
             genreListUl.appendChild(li);
         });
 
-        // フォームとフィルターのセレクトボックスを更新
         [itemCategory, filterCategorySelect, renameGenreSelect, deleteGenreSelect].forEach(select => {
             select.innerHTML = '';
-            // フィルター用には「全て」を追加
             if (select.id === 'filter-category') {
                 const option = document.createElement('option');
                 option.value = 'all';
@@ -90,7 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 支払い方法の表示と更新
     function renderPayments() {
-        // 支払い方法リストの表示
         paymentListUl.innerHTML = '';
         payments.forEach(payment => {
             const li = document.createElement('li');
@@ -98,7 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
             paymentListUl.appendChild(li);
         });
 
-        // フォームのセレクトボックスを更新
         [itemPayment, renamePaymentSelect, deletePaymentSelect].forEach(select => {
             select.innerHTML = '';
             payments.forEach(payment => {
@@ -129,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (displayMode === 'flat') {
             filteredRecords.forEach(record => {
-                const row = createRecordRow(record, displayMode);
+                const row = createRecordRow(record, 'flat');
                 recordTableBody.appendChild(row);
             });
         } else {
@@ -151,12 +146,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (displayMode === 'day') {
                     const dateParts = key.split('-');
-                    const formattedDate = `${dateParts[0]}年${dateParts[1]}月${dateParts[2]}日`;
-                    headerText = `${formattedDate}の合計: ¥${groupedRecords[key].total.toLocaleString()}`;
+                    const month = parseInt(dateParts[1], 10);
+                    const day = parseInt(dateParts[2], 10);
+                    headerText = `${dateParts[0]}年${month}月${day}日の合計: ¥${groupedRecords[key].total.toLocaleString()}`;
                 } else if (displayMode === 'month') {
                     const dateParts = key.split('-');
-                    const formattedDate = `${dateParts[1]}月`;
-                    headerText = `${formattedDate}の合計: ¥${groupedRecords[key].total.toLocaleString()}`;
+                    const month = parseInt(dateParts[1], 10);
+                    headerText = `${month}月の合計: ¥${groupedRecords[key].total.toLocaleString()}`;
                 } else if (displayMode === 'year') {
                     headerText = `${key}年の合計: ¥${groupedRecords[key].total.toLocaleString()}`;
                 }
@@ -196,10 +192,17 @@ document.addEventListener('DOMContentLoaded', () => {
     function createRecordRow(record, displayMode) {
         const row = document.createElement('tr');
         let displayDate = record.date;
-        if (displayMode === 'day' || displayMode === 'month') {
-             const parts = record.date.split('-');
-             displayDate = `${parts[1]}月${parts[2]}日`;
+        const parts = record.date.split('-');
+        const month = parseInt(parts[1], 10);
+        const day = parseInt(parts[2], 10);
+        
+        // 日付の表記を `x月x日` に統一
+        displayDate = `${month}月${day}日`;
+        
+        if (displayMode === 'flat' || displayMode === 'day' || displayMode === 'month') {
+             displayDate = `${month}月${day}日`;
         }
+
         row.innerHTML = `
             <td>${record.name}</td>
             <td>${record.maker || ''}</td>
@@ -342,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // フォーム送信時の処理
     form.addEventListener('submit', (e) => {
         e.preventDefault();
-        const priceValue = itemPrice.value.replace(/,/g, ''); // カンマを削除
+        const priceValue = itemPrice.value.replace(/,/g, '');
         const newRecord = {
             name: itemName.value,
             maker: itemMaker.value,
@@ -407,4 +410,3 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPayments();
     renderRecords();
 });
-
