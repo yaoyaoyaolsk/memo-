@@ -1,3 +1,23 @@
+承知いたしました。
+ご提示いただいた複数の変更点を反映させたコードを提供します。
+
+今回の変更点は以下の通りです。
+
+    金額入力: カンマが含まれていても、数字として正しく認識されるようになります。
+
+    金額表示: リストと合計金額が、カンマと**¥**付きで表示されるようになります。
+
+    日付表示: 期間ごとのヘッダーに年が表示され、個々のリストの日付は「月日」のみ表示されます。
+
+1. index.html (変更後)
+
+HTMLの変更はありません。前回のコードをそのままお使いいただけます。
+
+2. script.js (変更後)
+
+金額の入力と表示、日付の表示形式を修正しました。
+JavaScript
+
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('record-form');
     const itemName = document.getElementById('item-name');
@@ -13,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sortDateButton = document.getElementById('sort-date');
     const sortPriceButton = document.getElementById('sort-price');
     const filterCategorySelect = document.getElementById('filter-category');
-    const displayModeSelect = document.getElementById('display-mode-select'); // プルダウンメニューの要素を取得
+    const displayModeSelect = document.getElementById('display-mode-select');
 
     // タブ関連の要素
     const tabButtons = document.querySelectorAll('.tab-button');
@@ -129,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (displayMode === 'flat') {
             filteredRecords.forEach(record => {
-                const row = createRecordRow(record);
+                const row = createRecordRow(record, false); // falseで日付をフル表示
                 recordTableBody.appendChild(row);
             });
         } else {
@@ -138,11 +158,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const periodHeader = document.createElement('tr');
                 periodHeader.classList.add('period-header');
                 const headerText = `${key}の合計: ${groupedRecords[key].total.toLocaleString()}円`;
-                periodHeader.innerHTML = `<td colspan="8"><h3>${headerText}</h3></td>`;
+                periodHeader.innerHTML = `<td colspan="8"><h3>¥${headerText}</h3></td>`;
                 recordTableBody.appendChild(periodHeader);
                 
                 groupedRecords[key].records.forEach(record => {
-                    const row = createRecordRow(record);
+                    const row = createRecordRow(record, true); // trueで日付を月日表示
                     recordTableBody.appendChild(row);
                 });
             }
@@ -157,25 +177,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        totalPriceSpan.textContent = totalPrice.toLocaleString();
+        totalPriceSpan.textContent = `¥${totalPrice.toLocaleString()}`;
         
         categorySummaryDiv.innerHTML = '<h4>ジャンルごとの合計</h4>';
         for (const category in categoryTotals) {
             const p = document.createElement('p');
-            p.textContent = `${category}: ${categoryTotals[category].toLocaleString()} 円`;
+            p.textContent = `${category}: ¥${categoryTotals[category].toLocaleString()}`;
             categorySummaryDiv.appendChild(p);
         }
 
         localStorage.setItem('purchaseRecords', JSON.stringify(records));
     }
 
-    function createRecordRow(record) {
+    function createRecordRow(record, isShortDate) {
         const row = document.createElement('tr');
+        const displayDate = isShortDate ? record.date.substring(5) : record.date; // 5文字目から取得 (MM-DD)
         row.innerHTML = `
             <td>${record.name}</td>
             <td>${record.maker || ''}</td>
-            <td>${record.price}</td>
-            <td>${record.date}</td>
+            <td>¥${record.price.toLocaleString()}</td>
+            <td>${displayDate}</td>
             <td>${record.category}</td>
             <td>${record.payment || ''}</td>
             <td>${record.notes || ''}</td>
@@ -188,11 +209,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return data.reduce((groups, record) => {
             let key;
             if (type === 'year') {
-                key = record.date.substring(0, 4);
+                key = record.date.substring(0, 4) + '年';
             } else if (type === 'month') {
-                key = record.date.substring(0, 7);
+                key = record.date.substring(0, 7).replace('-', '年') + '月';
             } else if (type === 'day') {
-                key = record.date;
+                key = record.date.replace(/-/g, '/');
             }
             
             if (!groups[key]) {
@@ -313,10 +334,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // フォーム送信時の処理
     form.addEventListener('submit', (e) => {
         e.preventDefault();
+        const priceValue = itemPrice.value.replace(/,/g, ''); // カンマを削除
         const newRecord = {
             name: itemName.value,
             maker: itemMaker.value,
-            price: parseInt(itemPrice.value),
+            price: parseInt(priceValue),
             date: itemDate.value,
             category: itemCategory.value,
             payment: itemPayment.value,
