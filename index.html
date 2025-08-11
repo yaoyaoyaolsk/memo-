@@ -42,12 +42,12 @@
                     <div class="form-group">
                         <label for="item-category">ジャンル:</label>
                         <select id="item-category">
-                            </select>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="item-payment">支払い方法:</label>
                         <select id="item-payment">
-                            </select>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="item-notes">備考:</label>
@@ -64,20 +64,22 @@
                     <div id="category-summary"></div>
                 </div>
                 
+                <div class="filter-controls">
+                    <label for="filter-year">年で絞り込み:</label>
+                    <select id="filter-year-select">
+                        <option value="all">全て</option>
+                    </select>
+                    <label for="filter-month">月で絞り込み:</label>
+                    <select id="filter-month-select">
+                        <option value="all">全て</option>
+                    </select>
+                    <button id="show-all-button">全表示</button>
+                </div>
+                
                 <div class="sort-buttons">
                     <button id="sort-date">日付でソート</button>
                     <button id="sort-price">金額でソート</button>
                     <select id="filter-category">
-                        </select>
-                </div>
-
-                <div class="display-options">
-                    <label for="display-mode-select">表示方法:</label>
-                    <select id="display-mode-select">
-                        <option value="flat">区切らない</option>
-                        <option value="day">日毎</option>
-                        <option value="month">月毎</option>
-                        <option value="year">年毎</option>
                     </select>
                 </div>
 
@@ -95,7 +97,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        </tbody>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -106,7 +108,7 @@
                 <div class="genre-list">
                     <h3>現在のジャンル</h3>
                     <ul id="genre-list">
-                        </ul>
+                    </ul>
                 </div>
                 <form id="add-genre-form">
                     <input type="text" id="new-genre-name" placeholder="新しいジャンル名">
@@ -114,13 +116,13 @@
                 </form>
                 <form id="rename-genre-form">
                     <select id="rename-genre-select">
-                        </select>
+                    </select>
                     <input type="text" id="renamed-genre-name" placeholder="新しいジャンル名">
                     <button type="submit" class="rename-genre-button">リネーム</button>
                 </form>
                 <form id="delete-genre-form">
                     <select id="delete-genre-select">
-                        </select>
+                    </select>
                     <button type="submit" class="delete-genre-button">削除</button>
                 </form>
             </div>
@@ -132,7 +134,7 @@
                 <div class="payment-list">
                     <h3>現在の支払い方法</h3>
                     <ul id="payment-list">
-                        </ul>
+                    </ul>
                 </div>
                 <form id="add-payment-form">
                     <input type="text" id="new-payment-name" placeholder="新しい支払い方法名">
@@ -140,13 +142,13 @@
                 </form>
                 <form id="rename-payment-form">
                     <select id="rename-payment-select">
-                        </select>
+                    </select>
                     <input type="text" id="renamed-payment-name" placeholder="新しい支払い方法名">
                     <button type="submit" class="rename-payment-button">リネーム</button>
                 </form>
                 <form id="delete-payment-form">
                     <select id="delete-payment-select">
-                        </select>
+                    </select>
                     <button type="submit" class="delete-payment-button">削除</button>
                 </form>
             </div>
@@ -156,4 +158,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-
