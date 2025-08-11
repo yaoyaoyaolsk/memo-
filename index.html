@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>購入記録・管理システム</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>購入記録・管理システム</h1>
+    </header>
+
+    <main>
+        <div class="tabs">
+            <button class="tab-button active" data-tab="records">購入記録</button>
+            <button class="tab-button" data-tab="genre-management">ジャンル管理</button>
+            <button class="tab-button" data-tab="payment-management">支払い方法管理</button>
+        </div>
+
+        <div id="records" class="tab-content active">
+            <div class="input-form">
+                <h2>新規購入の記録</h2>
+                <form id="record-form">
+                    <div class="form-group">
+                        <label for="item-name">商品名:</label>
+                        <input type="text" id="item-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="item-maker">メーカー:</label>
+                        <input type="text" id="item-maker">
+                    </div>
+                    <div class="form-group">
+                        <label for="item-price">金額:</label>
+                        <input type="number" id="item-price" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="item-date">購入日:</label>
+                        <input type="date" id="item-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="item-category">ジャンル:</label>
+                        <select id="item-category">
+                            </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="item-payment">支払い方法:</label>
+                        <select id="item-payment">
+                            </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="item-notes">備考:</label>
+                        <textarea id="item-notes"></textarea>
+                    </div>
+                    <button type="submit" class="add-button">記録を追加</button>
+                </form>
+            </div>
+            
+            <div class="data-display">
+                <h2>購入履歴</h2>
+                <div class="summary">
+                    <p>全ての合計金額: <span id="total-price">0</span> 円</p>
+                    <div id="category-summary"></div>
+                </div>
+                
+                <div class="sort-buttons">
+                    <button id="sort-date">日付でソート</button>
+                    <button id="sort-price">金額でソート</button>
+                    <select id="filter-category">
+                        </select>
+                </div>
+
+                <div class="display-options">
+                    <label for="display-mode-select">表示方法:</label>
+                    <select id="display-mode-select">
+                        <option value="flat">区切らない</option>
+                        <option value="day">日毎</option>
+                        <option value="month">月毎</option>
+                        <option value="year">年毎</option>
+                    </select>
+                </div>
+
+                <table id="record-table">
+                    <thead>
+                        <tr>
+                            <th>商品名</th>
+                            <th>メーカー</th>
+                            <th>金額</th>
+                            <th>購入日</th>
+                            <th>ジャンル</th>
+                            <th>支払い方法</th>
+                            <th>備考</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="genre-management" class="tab-content">
+            <div class="genre-management">
+                <h2>ジャンルの管理</h2>
+                <div class="genre-list">
+                    <h3>現在のジャンル</h3>
+                    <ul id="genre-list">
+                        </ul>
+                </div>
+                <form id="add-genre-form">
+                    <input type="text" id="new-genre-name" placeholder="新しいジャンル名">
+                    <button type="submit" class="add-genre-button">追加</button>
+                </form>
+                <form id="rename-genre-form">
+                    <select id="rename-genre-select">
+                        </select>
+                    <input type="text" id="renamed-genre-name" placeholder="新しいジャンル名">
+                    <button type="submit" class="rename-genre-button">リネーム</button>
+                </form>
+                <form id="delete-genre-form">
+                    <select id="delete-genre-select">
+                        </select>
+                    <button type="submit" class="delete-genre-button">削除</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="payment-management" class="tab-content">
+            <div class="payment-management">
+                <h2>支払い方法の管理</h2>
+                <div class="payment-list">
+                    <h3>現在の支払い方法</h3>
+                    <ul id="payment-list">
+                        </ul>
+                </div>
+                <form id="add-payment-form">
+                    <input type="text" id="new-payment-name" placeholder="新しい支払い方法名">
+                    <button type="submit" class="add-payment-button">追加</button>
+                </form>
+                <form id="rename-payment-form">
+                    <select id="rename-payment-select">
+                        </select>
+                    <input type="text" id="renamed-payment-name" placeholder="新しい支払い方法名">
+                    <button type="submit" class="rename-payment-button">リネーム</button>
+                </form>
+                <form id="delete-payment-form">
+                    <select id="delete-payment-select">
+                        </select>
+                    <button type="submit" class="delete-payment-button">削除</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
