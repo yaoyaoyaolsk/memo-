@@ -1,23 +1,3 @@
-承知いたしました。
-ご提示いただいた複数の変更点を反映させたコードを提供します。
-
-今回の変更点は以下の通りです。
-
-    金額入力: カンマが含まれていても、数字として正しく認識されるようになります。
-
-    金額表示: リストと合計金額が、カンマと**¥**付きで表示されるようになります。
-
-    日付表示: 期間ごとのヘッダーに年が表示され、個々のリストの日付は「月日」のみ表示されます。
-
-1. index.html (変更後)
-
-HTMLの変更はありません。前回のコードをそのままお使いいただけます。
-
-2. script.js (変更後)
-
-金額の入力と表示、日付の表示形式を修正しました。
-JavaScript
-
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('record-form');
     const itemName = document.getElementById('item-name');
@@ -399,3 +379,4 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPayments();
     renderRecords();
 });
+
