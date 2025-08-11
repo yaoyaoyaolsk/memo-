@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (displayMode === 'flat') {
             filteredRecords.forEach(record => {
-                const row = createRecordRow(record);
+                const row = createRecordRow(record, displayMode);
                 recordTableBody.appendChild(row);
             });
         } else {
@@ -150,11 +150,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 let headerText = '';
 
                 if (displayMode === 'day') {
-                    headerText = `${key}の合計: ¥${groupedRecords[key].total.toLocaleString()}`;
+                    const dateParts = key.split('-');
+                    const formattedDate = `${dateParts[0]}年${dateParts[1]}月${dateParts[2]}日`;
+                    headerText = `${formattedDate}の合計: ¥${groupedRecords[key].total.toLocaleString()}`;
                 } else if (displayMode === 'month') {
-                    headerText = `${key}の合計: ¥${groupedRecords[key].total.toLocaleString()}`;
+                    const dateParts = key.split('-');
+                    const formattedDate = `${dateParts[1]}月`;
+                    headerText = `${formattedDate}の合計: ¥${groupedRecords[key].total.toLocaleString()}`;
                 } else if (displayMode === 'year') {
-                    headerText = `${key}の合計: ¥${groupedRecords[key].total.toLocaleString()}`;
+                    headerText = `${key}年の合計: ¥${groupedRecords[key].total.toLocaleString()}`;
                 }
                 periodHeader.innerHTML = `<td colspan="8"><h4>${headerText}</h4></td>`;
                 recordTableBody.appendChild(periodHeader);
@@ -215,4 +219,191 @@ document.addEventListener('DOMContentLoaded', () => {
             if (type === 'year') {
                 key = record.date.substring(0, 4);
             } else if (type === 'month') {
-                key = record
+                key = record.date.substring(0, 7);
+            } else if (type === 'day') {
+                key = record.date;
+            }
+            
+            if (!groups[key]) {
+                groups[key] = { total: 0, records: [] };
+            }
+            groups[key].total += record.price;
+            groups[key].records.push(record);
+            return groups;
+        }, {});
+    }
+
+    // ジャンルの追加
+    addGenreForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const newGenre = newGenreNameInput.value.trim();
+        if (newGenre && !genres.includes(newGenre)) {
+            genres.push(newGenre);
+            renderGenres();
+            renderRecords();
+            addGenreForm.reset();
+        }
+    });
+
+    // ジャンルのリネーム
+    renameGenreForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const oldGenre = renameGenreSelect.value;
+        const newGenre = renamedGenreNameInput.value.trim();
+        if (oldGenre && newGenre && !genres.includes(newGenre)) {
+            const index = genres.indexOf(oldGenre);
+            if (index > -1) {
+                genres[index] = newGenre;
+                records.forEach(record => {
+                    if (record.category === oldGenre) {
+                        record.category = newGenre;
+                    }
+                });
+                renderGenres();
+                renderRecords();
+                renameGenreForm.reset();
+            }
+        }
+    });
+
+    // ジャンルの削除
+    deleteGenreForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const genreToDelete = deleteGenreSelect.value;
+        if (genreToDelete) {
+            const index = genres.indexOf(genreToDelete);
+            if (index > -1) {
+                genres.splice(index, 1);
+                records.forEach(record => {
+                    if (record.category === genreToDelete) {
+                        record.category = 'その他';
+                    }
+                });
+                renderGenres();
+                renderRecords();
+                deleteGenreForm.reset();
+            }
+        }
+    });
+
+    // 支払い方法の追加
+    addPaymentForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const newPayment = newPaymentNameInput.value.trim();
+        if (newPayment && !payments.includes(newPayment)) {
+            payments.push(newPayment);
+            renderPayments();
+            renderRecords();
+            addPaymentForm.reset();
+        }
+    });
+
+    // 支払い方法のリネーム
+    renamePaymentForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const oldPayment = renamePaymentSelect.value;
+        const newPayment = renamedPaymentNameInput.value.trim();
+        if (oldPayment && newPayment && !payments.includes(newPayment)) {
+            const index = payments.indexOf(oldPayment);
+            if (index > -1) {
+                payments[index] = newPayment;
+                records.forEach(record => {
+                    if (record.payment === oldPayment) {
+                        record.payment = newPayment;
+                    }
+                });
+                renderPayments();
+                renderRecords();
+                renamePaymentForm.reset();
+            }
+        }
+    });
+
+    // 支払い方法の削除
+    deletePaymentForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const paymentToDelete = deletePaymentSelect.value;
+        if (paymentToDelete) {
+            const index = payments.indexOf(paymentToDelete);
+            if (index > -1) {
+                payments.splice(index, 1);
+                records.forEach(record => {
+                    if (record.payment === paymentToDelete) {
+                        record.payment = 'その他';
+                    }
+                });
+                renderPayments();
+                renderRecords();
+                deletePaymentForm.reset();
+            }
+        }
+    });
+
+    // フォーム送信時の処理
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const priceValue = itemPrice.value.replace(/,/g, ''); // カンマを削除
+        const newRecord = {
+            name: itemName.value,
+            maker: itemMaker.value,
+            price: parseInt(priceValue),
+            date: itemDate.value,
+            category: itemCategory.value,
+            payment: itemPayment.value,
+            notes: itemNotes.value
+        };
+        records.push(newRecord);
+        renderRecords();
+        form.reset();
+    });
+
+    // データの削除
+    recordTableBody.addEventListener('click', (e) => {
+        if (e.target.classList.contains('delete-button')) {
+            const index = e.target.dataset.index;
+            records.splice(index, 1);
+            renderRecords();
+        }
+    });
+
+    // 日付でソート
+    sortDateButton.addEventListener('click', () => {
+        records.sort((a, b) => {
+            if (isAscendingDate) {
+                return new Date(a.date) - new Date(b.date);
+            } else {
+                return new Date(b.date) - new Date(a.date);
+            }
+        });
+        isAscendingDate = !isAscendingDate;
+        renderRecords();
+    });
+
+    // 金額でソート
+    sortPriceButton.addEventListener('click', () => {
+        records.sort((a, b) => {
+            if (isAscendingPrice) {
+                return a.price - b.price;
+            } else {
+                return b.price - a.price;
+            }
+        });
+        isAscendingPrice = !isAscendingPrice;
+        renderRecords();
+    });
+
+    // ジャンルでフィルタリング
+    filterCategorySelect.addEventListener('change', () => {
+        renderRecords();
+    });
+
+    // 表示方法の変更を監視
+    displayModeSelect.addEventListener('change', () => {
+        renderRecords();
+    });
+
+    // ページロード時に初期データを表示
+    renderGenres();
+    renderPayments();
+    renderRecords();
+});
